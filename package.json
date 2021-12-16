@@ -3,20 +3,43 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@chakra-ui/react": "^1.7.3",
+    "@emotion/react": "^11.7.1",
+    "@emotion/styled": "^11.6.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
+    "@webcomponents/webcomponentsjs": "^2.6.0",
+    "framer-motion": "^4.1.17",
+    "nahtuh-client": "^1.0.1-13",
+    "nahtuh-components": "^1.0.4-5",
     "react": "^17.0.2",
+    "react-dnd": "^14.0.4",
+    "react-dnd-html5-backend": "^14.0.2",
+    "react-dnd-multi-backend": "^6.0.2",
+    "react-dnd-touch-backend": "^14.1.1",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
+    "vendor-copy": "^3.0.1",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "set port=5000&react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall": "vendor-copy"
   },
+  "vendorCopy": [
+    {
+      "from": "node_modules/@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js",
+      "to": "public/vendor/custom-elements-es5-adapter.js"
+    },
+    {
+      "from": "node_modules/@webcomponents/webcomponentsjs/webcomponents-bundle.js",
+      "to": "public/vendor/webcomponents-bundle.js"
+    }
+  ],
   "eslintConfig": {
     "extends": [
       "react-app",
