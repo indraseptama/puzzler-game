@@ -6,47 +6,11 @@ import { TouchBackend } from "react-dnd-touch-backend";
 import { Box } from "@chakra-ui/react";
 import { shuffle } from "../../../utils/shuffle";
 
-const Puzzle = () => {
-  const level = 4;
-  const [positions, setPositions] = useState([]);
-  const imageUrl =
-    "https://www.teahub.io/photos/full/146-1469010_one-piece-family.jpg";
+const Puzzle = ({ level, onSwap, positions }) => {
   const size = 400;
 
-  useEffect(() => {
-    setPositions(shuffle([...Array(level * level).keys()]));
-  }, []);
-
-  const onSwap = (sourcePosition, dropPosition) => {
-    const oldPositions = positions;
-
-    const newPositions = [];
-    let done = true;
-    let p = 0;
-
-    for (let i in oldPositions) {
-      let value = oldPositions[i];
-      let newValue = value;
-
-      if (value === sourcePosition) {
-        newValue = dropPosition;
-      } else if (value === dropPosition) {
-        newValue = sourcePosition;
-      }
-
-      newPositions.push(newValue);
-
-      if (newValue !== p) {
-        done = false;
-      }
-
-      p = p + 1;
-    }
-
-    setPositions([...newPositions]);
-
-    console.log(done);
-  };
+  const imageUrl =
+    "https://upload.wikimedia.org/wikipedia/id/thumb/7/7a/Manchester_United_FC_crest.svg/1200px-Manchester_United_FC_crest.svg.png";
 
   const renderSqure = () =>
     positions.map((i, index) => (

@@ -11,14 +11,16 @@ import { nahtuhClient } from "nahtuh-client";
 function App() {
   const [currentPage, setCurrentPage] = useState("/");
   const [eventId, setEventId] = useState(null);
+  const [isHost, setIsHost] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
 
   useEffect(() => {
     window.nahtuhClient = nahtuhClient;
   }, []);
 
   const onStart = (data) => {
-    console.log(data);
     setEventId(data.eventInfo.eventId);
+    setIsHost(data.participant.isHost);
     setCurrentPage("/lobby");
   };
 
@@ -42,7 +44,7 @@ function App() {
   } else {
     return (
       <div className="App">
-        <Main></Main>
+        <Main isHost={isHost}></Main>
       </div>
     );
   }
