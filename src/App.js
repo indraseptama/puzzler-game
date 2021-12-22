@@ -7,6 +7,7 @@ import Lobby from "./pages/Lobby/Lobby";
 import Main from "./pages/Main";
 import "nahtuh-components";
 import { nahtuhClient } from "nahtuh-client";
+import Preparation from "./pages/Main/components/Preparation";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("/");

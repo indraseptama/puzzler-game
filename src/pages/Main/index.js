@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import Puzzle from "./components/Puzzle";
 import { nahtuhClient } from "nahtuh-client";
 import { shuffle } from "../../utils/shuffle";
+import Preparation from "./components/Preparation";
 
 const Main = ({ isHost }) => {
   const level = 4;
   const solution = [...Array(level * level).keys()];
-  const [participant, setParticipant] = useState([]);
+  const [participants, setParticipants] = useState([]);
   const [positions, setPositions] = useState([]);
   const [isCompleted, setIsCompleted] = useState(false);
 
@@ -62,7 +63,7 @@ const Main = ({ isHost }) => {
   const getParticipant = async () => {
     const participant = await nahtuhClient.getParticipantList();
     console.log(participant);
-    if (participant) setParticipant(participant);
+    if (participant) setParticipants(participant);
   };
 
   const onClick = (message) => {
@@ -75,6 +76,7 @@ const Main = ({ isHost }) => {
         setPositions(data.content.positions);
     }
   };
+  if (isHost) return <Preparation participants={participants} />;
   return (
     <Flex
       width={"100%"}
