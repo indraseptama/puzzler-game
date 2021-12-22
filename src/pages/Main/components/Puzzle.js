@@ -3,12 +3,12 @@ import Cell from "./Cell";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
-import { Box } from "@chakra-ui/react";
+import { Box, useMediaQuery } from "@chakra-ui/react";
 import { shuffle } from "../../../utils/shuffle";
 
-const Puzzle = ({ level, onSwap, positions }) => {
+const Puzzle = ({ isCompleted, level, onSwap, positions }) => {
   const size = 400;
-
+  const [phone] = useMediaQuery(`(max-width: 600px)`);
   const imageUrl =
     "https://upload.wikimedia.org/wikipedia/id/thumb/7/7a/Manchester_United_FC_crest.svg/1200px-Manchester_United_FC_crest.svg.png";
 
@@ -18,6 +18,7 @@ const Puzzle = ({ level, onSwap, positions }) => {
         key={i}
         size={size}
         image={imageUrl}
+        isCompleted={isCompleted}
         level={level}
         position={i}
         onSwap={onSwap}
@@ -27,17 +28,29 @@ const Puzzle = ({ level, onSwap, positions }) => {
     ));
 
   return (
-    <Box
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        padding: 0,
-        width: `${size}px`,
-        height: `${size}px`,
-      }}
-    >
-      <DndProvider backend={HTML5Backend}>{renderSqure()}</DndProvider>
-    </Box>
+    <>
+      {phone ? (
+        <Box
+          display={"flex"}
+          flexWrap={"wrap"}
+          padding={0}
+          width={`${size}px`}
+          height={`${size}px`}
+        >
+          <DndProvider backend={TouchBackend}>{renderSqure()}</DndProvider>
+        </Box>
+      ) : (
+        <Box
+          display={"flex"}
+          flexWrap={"wrap"}
+          padding={0}
+          width={`${size}px`}
+          height={`${size}px`}
+        >
+          <DndProvider backend={HTML5Backend}>{renderSqure()}</DndProvider>
+        </Box>
+      )}
+    </>
   );
 };
 

@@ -1,9 +1,19 @@
 /** @jsxImportSource @emotion/react */
 import { useDrag } from "react-dnd";
 import { css, jsx } from "@emotion/react";
-const Piece = ({ isOnPosition, image, size, side, x, y, position }) => {
+const Piece = ({
+  isCompleted,
+  isOnPosition,
+  image,
+  size,
+  side,
+  x,
+  y,
+  position,
+}) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "lol",
+    canDrag: !isCompleted,
     item: { position },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
@@ -19,7 +29,7 @@ const Piece = ({ isOnPosition, image, size, side, x, y, position }) => {
         background-image: url(${image});
         background-size: ${size}px ${size}px;
         background-position: -${x}px -${y}px;
-        cursor: move;
+        cursor: ${isCompleted ? "" : "move"};
         filter: ${isOnPosition ? "" : "grayscale(100%)"};
       `}
       ref={drag}

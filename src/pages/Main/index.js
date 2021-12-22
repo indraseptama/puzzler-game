@@ -6,17 +6,28 @@ import { shuffle } from "../../utils/shuffle";
 
 const Main = ({ isHost }) => {
   const level = 4;
+  const solution = [...Array(level * level).keys()];
   const [participant, setParticipant] = useState([]);
   const [positions, setPositions] = useState([]);
+  const [isCompleted, setIsCompleted] = useState(false);
+
   useEffect(() => {
     nahtuhClient.onIncomingMessage = onIncomingMessage;
     getParticipant();
     if (isHost) {
-      const newPositions = shuffle([...Array(level * level).keys()]);
+      const newPositions = shuffle(solution);
       nahtuhClient.broadcast({ type: "positions", positions: newPositions });
       setPositions(newPositions);
     }
   }, []);
+
+  useEffect(() => {
+    const matched = equals(solution, positions);
+    setIsCompleted(matched);
+  }, [positions]);
+
+  const equals = (a, b) =>
+    a.length === b.length && a.every((v, i) => v === b[i]);
 
   const onSwap = (sourcePosition, dropPosition) => {
     const oldPositions = positions;
@@ -44,7 +55,6 @@ const Main = ({ isHost }) => {
       p = p + 1;
     }
     nahtuhClient.broadcast({ type: "positions", positions: newPositions });
-    setPositions([...newPositions]);
 
     if (done) onClick("finish");
   };
@@ -83,7 +93,12 @@ const Main = ({ isHost }) => {
           <Text textAlign={"center"} mb={"16px"}>
             Solve the puzzle!
           </Text>
-          <Puzzle level={level} onSwap={onSwap} positions={positions} />
+          <Puzzle
+            isCompleted={isCompleted}
+            level={level}
+            onSwap={onSwap}
+            positions={positions}
+          />
         </Box>
       </Flex>
       {/* <Box flex={1} height={"100vh"} py="40px">

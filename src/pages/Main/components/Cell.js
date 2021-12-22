@@ -3,6 +3,7 @@ import { useEffect } from "react/cjs/react.development";
 import Piece from "./Piece";
 
 const Cell = ({
+  isCompleted,
   isOnPosition,
   positions,
   image,
@@ -18,6 +19,7 @@ const Cell = ({
   const [{ isOver }, drop] = useDrop(
     () => ({
       accept: "lol",
+
       drop: (props) => {
         swap(props.position, position);
       },
@@ -25,7 +27,7 @@ const Cell = ({
         isOver: !!monitor.isOver(),
       }),
     }),
-    [positions]
+    [positions, isCompleted]
   );
 
   const swap = (source, direction) => {
@@ -38,6 +40,7 @@ const Cell = ({
         position={position}
         image={image}
         size={size}
+        isCompleted={isCompleted}
         side={side}
         x={x}
         y={y}
