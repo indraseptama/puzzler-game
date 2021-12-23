@@ -6,11 +6,9 @@ import { TouchBackend } from "react-dnd-touch-backend";
 import { Box, useMediaQuery } from "@chakra-ui/react";
 import { shuffle } from "../../../utils/shuffle";
 
-const Puzzle = ({ isCompleted, level, onSwap, positions }) => {
-  const size = 400;
+const Puzzle = ({ isCompleted, level, onSwap, positions, imageUrl }) => {
+  const size = 300;
   const [phone] = useMediaQuery(`(max-width: 600px)`);
-  const imageUrl =
-    "https://upload.wikimedia.org/wikipedia/id/thumb/7/7a/Manchester_United_FC_crest.svg/1200px-Manchester_United_FC_crest.svg.png";
 
   const renderSqure = () =>
     positions.map((i, index) => (

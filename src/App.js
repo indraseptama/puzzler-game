@@ -13,6 +13,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState("/");
   const [eventId, setEventId] = useState(null);
   const [isHost, setIsHost] = useState(false);
+  const [nickName, setNickName] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
   useEffect(() => {
@@ -22,6 +23,7 @@ function App() {
   const onStart = (data) => {
     setEventId(data.eventInfo.eventId);
     setIsHost(data.participant.isHost);
+    setNickName(data.participant.participantName);
     setCurrentPage("/lobby");
   };
 
@@ -45,7 +47,7 @@ function App() {
   } else {
     return (
       <div className="App">
-        <Main isHost={isHost}></Main>
+        <Main isHost={isHost} nickName={nickName}></Main>
       </div>
     );
   }

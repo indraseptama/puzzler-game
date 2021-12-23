@@ -1,26 +1,31 @@
-import { Box, Flex, Text, VStack } from "@chakra-ui/react";
+import { Box, Flex, Spinner, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Puzzle from "./components/Puzzle";
 import { nahtuhClient } from "nahtuh-client";
 import { shuffle } from "../../utils/shuffle";
 import Preparation from "./components/Preparation";
 
-const Main = ({ isHost }) => {
+const Main = ({ isHost, nickName }) => {
   const level = 4;
   const solution = [...Array(level * level).keys()];
   const [participants, setParticipants] = useState([]);
   const [positions, setPositions] = useState([]);
   const [isCompleted, setIsCompleted] = useState(false);
-
+  const [isGameStarted, setGameStarted] = useState(false);
+  const [groupName, setNameGroup] = useState("");
+  const [imageUrl, setImageUrl] = useState();
   useEffect(() => {
     nahtuhClient.onIncomingMessage = onIncomingMessage;
     getParticipant();
-    if (isHost) {
+  }, []);
+
+  useEffect(() => {
+    if (isHost && isGameStarted) {
       const newPositions = shuffle(solution);
       nahtuhClient.broadcast({ type: "positions", positions: newPositions });
       setPositions(newPositions);
     }
-  }, []);
+  }, [isGameStarted]);
 
   useEffect(() => {
     const matched = equals(solution, positions);
@@ -55,14 +60,16 @@ const Main = ({ isHost }) => {
 
       p = p + 1;
     }
-    nahtuhClient.broadcast({ type: "positions", positions: newPositions });
+    nahtuhClient.sendToGroup(groupName, {
+      type: "positions",
+      positions: newPositions,
+    });
 
     if (done) onClick("finish");
   };
 
   const getParticipant = async () => {
     const participant = await nahtuhClient.getParticipantList();
-    console.log(participant);
     if (participant) setParticipants(participant);
   };
 
@@ -74,9 +81,21 @@ const Main = ({ isHost }) => {
     if (data && data.content) {
       if (data.content.type === "positions")
         setPositions(data.content.positions);
+      else if (data.content.type === "gameStart") setGameStarted(true);
+      else if (data.content.type === "groupName")
+        setNameGroup(data.content.groupName);
+      else if (data.content.type === "imageUrl")
+        setImageUrl(data.content.imageUrl);
     }
   };
-  if (isHost) return <Preparation participants={participants} />;
+  if (isHost && !isGameStarted)
+    return <Preparation participants={participants} />;
+  else if (!isHost && !isGameStarted)
+    return (
+      <Box>
+        <Spinner />
+      </Box>
+    );
   return (
     <Flex
       width={"100%"}
@@ -93,9 +112,10 @@ const Main = ({ isHost }) => {
       >
         <Box>
           <Text textAlign={"center"} mb={"16px"}>
-            Solve the puzzle!
+            {`Solve the puzzle ${nickName}!`}
           </Text>
           <Puzzle
+            imageUrl={imageUrl}
             isCompleted={isCompleted}
             level={level}
             onSwap={onSwap}

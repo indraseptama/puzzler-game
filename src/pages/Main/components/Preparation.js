@@ -4,34 +4,66 @@ import {
   Flex,
   Icon,
   IconButton,
+  Image,
+  Input,
   SimpleGrid,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { ReactSortable } from "react-sortablejs";
 import { BiTrash } from "react-icons/bi";
+import { nahtuhClient } from "nahtuh-client";
+import { readFile } from "../../../utils/file";
 const Preparation = ({ participants }) => {
-  const [groups, setGroups] = useState([
-    { name: "Group 1", members: [] },
-    { name: "Group 2", members: [] },
-  ]);
+  const [groups, setGroups] = useState([{ name: "Group 1", members: [] }]);
+  const [groupCount, setGroupCount] = useState(1);
+  const [imageUrl, setImageUrlPreview] = useState();
   const [unAssignmentParticipants, setUnAssignmentParticipants] =
     useState(participants);
+  const toast = useToast();
 
   useEffect(() => {
     setUnAssignmentParticipants(participants);
   }, [participants]);
 
+  useEffect(() => {
+    if (imageUrl)
+      nahtuhClient.broadcast({ type: "imageUrl", imageUrl: imageUrl });
+  }, [imageUrl]);
+
   const addGroup = () => {
+    if (!imageUrl) {
+      toast({
+        title: "",
+        description: "Image cannot be empty",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
+    if (participants.length <= groups.length) {
+      toast({
+        title: "Create Group Failed",
+        description:
+          "The number of groups cannot be more than the number of participants",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
     setGroups((prevGroups) => {
-      const newGroupId = prevGroups.length + 1;
       const newGroup = {
-        name: `Group ${newGroupId}`,
+        name: `Group ${groupCount + 1}`,
         members: [],
       };
 
       return [...prevGroups, newGroup];
     });
+
+    setGroupCount((prevItems) => prevItems + 1);
   };
 
   const assignToGroup = (member, groupIndex) => {
@@ -40,9 +72,74 @@ const Preparation = ({ participants }) => {
     setGroups(data);
   };
 
-  const changeNameGroup = (newName, groupIndex) => {};
+  const changeNameGroup = (newName, groupIndex) => {
+    setGroups((prevItems) => {
+      const data = [...prevItems];
+      data[groupIndex].name = newName;
+      return data;
+    });
+  };
 
-  const removeGroup = (groupIndex) => {};
+  const removeGroup = (groupIndex) => {
+    if (groups.length == 1) {
+      toast({
+        title: "Remove Group Failed",
+        description: "Minimum number of groups is 1",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
+    const data = [...groups];
+    const memberGroup = data[groupIndex].members;
+    setUnAssignmentParticipants((prevItems) => [...prevItems, ...memberGroup]);
+    data.splice(groupIndex, 1);
+    setGroups(data);
+  };
+
+  const onStart = () => {
+    if (unAssignmentParticipants.length !== 0) {
+      toast({
+        title: "",
+        description: "There are participants who have not entered the group",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
+    const listOfName = [];
+    for (const group of groups) {
+      if (listOfName.includes(group.name)) {
+        toast({
+          title: "Duplicate Group Name",
+          description: "Group names cannot be the same",
+          status: "error",
+          duration: 4000,
+          isClosable: true,
+        });
+        return;
+      }
+      listOfName.push(group.name);
+      for (const member of group.members) {
+        nahtuhClient.joinGroup(member.participantId, group.name);
+        nahtuhClient.sendToUser(member.participantId, {
+          type: "groupName",
+          groupName: group.name,
+        });
+      }
+    }
+    nahtuhClient.broadcast({ type: "gameStart" });
+  };
+
+  const onImageUpload = async (event) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const file = event.target.files[0];
+      let imageDataUrl = await readFile(file);
+      setImageUrlPreview(imageDataUrl);
+    }
+  };
 
   return (
     <Flex
@@ -52,6 +149,47 @@ const Preparation = ({ participants }) => {
       alignItems={"flex-start"}
       background={"linear-gradient(180deg, #FFE4C6 2.16%, #EC9B3E 132.04%)"}
     >
+      <Box flex={2}>
+        <Box bg={"white"} borderRadius={"16px"} p="16px" mb="24px">
+          <input
+            type="file"
+            id="file"
+            multiple={false}
+            accept="image/*"
+            label="Upload File"
+            onChange={onImageUpload}
+          />
+          {imageUrl && <Image mt="16px" src={imageUrl} boxSize={"50px"} />}
+          <Button mt="16px" onClick={onStart}>
+            Start
+          </Button>
+        </Box>
+        <Box bg={"white"} borderRadius={"16px"} p="16px">
+          <Text fontWeight={"700"} fontSize={"24px"}>
+            Participants
+          </Text>
+          <Text mb="16px" fontSize={"12px"}>
+            Drag and drop members to assign them into groups.
+          </Text>
+          <ReactSortable
+            style={{ minHeight: "200px" }}
+            list={unAssignmentParticipants}
+            setList={setUnAssignmentParticipants}
+            group="players"
+          >
+            {unAssignmentParticipants.map((participant) => (
+              <Text
+                cursor={"move"}
+                textAlign={"left"}
+                key={participant.participantId}
+              >
+                {participant.participantName}
+              </Text>
+            ))}
+          </ReactSortable>
+        </Box>
+      </Box>
+      <Box width={"40px"}></Box>
       <Box flex={3}>
         <Flex justifyContent={"right"}>
           <Button mb="24px" mr="24px">
@@ -70,10 +208,20 @@ const Preparation = ({ participants }) => {
                 justifyContent={"space-between"}
                 w="100%"
               >
-                <Text mb="8px" fontSize={"24px"} fontWeight={"600"}>
-                  {group.name}
-                </Text>
-                <Icon as={BiTrash} />
+                <Input
+                  value={group.name}
+                  onChange={(e) => changeNameGroup(e.target.value, index)}
+                  mb="8px"
+                  fontSize={"24px"}
+                  fontWeight={"600"}
+                />
+                <IconButton
+                  cursor={"pointer"}
+                  onClick={() => {
+                    removeGroup(index);
+                  }}
+                  as={BiTrash}
+                />
               </Flex>
 
               <ReactSortable
@@ -83,7 +231,11 @@ const Preparation = ({ participants }) => {
                 group="players"
               >
                 {group.members.map((member) => (
-                  <Text key={member.participantId}>
+                  <Text
+                    textAlign={"left"}
+                    cursor={"move"}
+                    key={member.participantId}
+                  >
                     {member.participantName}
                   </Text>
                 ))}
@@ -91,28 +243,6 @@ const Preparation = ({ participants }) => {
             </Box>
           ))}
         </SimpleGrid>
-      </Box>
-
-      <Box width={"40px"}></Box>
-      <Box flex={2} bg={"white"} borderRadius={"16px"} p="16px">
-        <Text fontWeight={"700"} fontSize={"24px"}>
-          Participants
-        </Text>
-        <Text mb="16px" fontSize={"12px"}>
-          Drag and drop members to assign them into groups.
-        </Text>
-        <ReactSortable
-          style={{ minHeight: "200px" }}
-          list={unAssignmentParticipants}
-          setList={setUnAssignmentParticipants}
-          group="players"
-        >
-          {unAssignmentParticipants.map((participant) => (
-            <Text textAlign={"left"} key={participant.participantId}>
-              {participant.participantName}
-            </Text>
-          ))}
-        </ReactSortable>
       </Box>
     </Flex>
   );

@@ -11,14 +11,17 @@ const Piece = ({
   y,
   position,
 }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: "lol",
-    canDrag: !isCompleted,
-    item: { position },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: "lol",
+      canDrag: !isCompleted,
+      item: { position },
+      collect: (monitor) => ({
+        isDragging: !!monitor.isDragging(),
+      }),
     }),
-  }));
+    [isCompleted]
+  );
   return (
     <div
       css={css`
