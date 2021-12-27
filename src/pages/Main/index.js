@@ -14,23 +14,39 @@ const Main = ({ isHost, nickName }) => {
   const [isGameStarted, setGameStarted] = useState(false);
   const [groupName, setNameGroup] = useState("");
   const [imageUrl, setImageUrl] = useState();
+  const [startGameTime, setStartGameTime] = useState();
+  const [groups, setGroups] = useState([]);
+
   useEffect(() => {
-    nahtuhClient.onIncomingMessage = onIncomingMessage;
     getParticipant();
   }, []);
 
   useEffect(() => {
+    nahtuhClient.onIncomingMessage = onIncomingMessage;
+  }, [groups]);
+
+  useEffect(() => {
     if (isHost && isGameStarted) {
       const newPositions = shuffle(solution);
+      const start = Date.now();
       nahtuhClient.broadcast({ type: "positions", positions: newPositions });
       setPositions(newPositions);
+      setStartGameTime(start);
     }
   }, [isGameStarted]);
 
   useEffect(() => {
     const matched = equals(solution, positions);
+    if (matched)
+      nahtuhClient.broadcast({ type: "finish", groupName: groupName });
     setIsCompleted(matched);
   }, [positions]);
+
+  const onEventVariableChanged = (message) => {
+    console.log(message);
+    const { name, value } = message;
+    if (name === "groups") setGroups(value);
+  };
 
   const equals = (a, b) =>
     a.length === b.length && a.every((v, i) => v === b[i]);
@@ -64,8 +80,6 @@ const Main = ({ isHost, nickName }) => {
       type: "positions",
       positions: newPositions,
     });
-
-    if (done) onClick("finish");
   };
 
   const getParticipant = async () => {
@@ -73,19 +87,58 @@ const Main = ({ isHost, nickName }) => {
     if (participant) setParticipants(participant);
   };
 
-  const onClick = (message) => {
-    nahtuhClient.broadcast(message);
-  };
+  function alphabetically(ascending) {
+    return function (a, b) {
+      // equal items sort equally
+      if (a.duration === b.duration) {
+        return 0;
+      }
+      // nulls sort after anything else
+      else if (a.duration === null) {
+        return 1;
+      } else if (b.duration === null) {
+        return -1;
+      }
+      // otherwise, if we're ascending, lowest sorts first
+      else if (ascending) {
+        return a.duration < b.duration ? -1 : 1;
+      }
+      // if descending, highest sorts first
+      else {
+        return a.duration < b.duration ? 1 : -1;
+      }
+    };
+  }
 
   const onIncomingMessage = (data) => {
     if (data && data.content) {
       if (data.content.type === "positions")
         setPositions(data.content.positions);
-      else if (data.content.type === "gameStart") setGameStarted(true);
-      else if (data.content.type === "groupName")
+      else if (data.content.type === "gameStart") {
+        setGameStarted(true);
+        setGroups(data.content.groups);
+      } else if (data.content.type === "groupName")
         setNameGroup(data.content.groupName);
       else if (data.content.type === "imageUrl")
         setImageUrl(data.content.imageUrl);
+      else if (data.content.type === "finish" && isHost) {
+        const finishGroupName = data.content.groupName;
+
+        const dataGroup = [...groups];
+        const dataIndex = dataGroup.findIndex(
+          (item) => item.name === finishGroupName
+        );
+        if (dataGroup[dataIndex].duration === null) {
+          const finish = Date.now();
+          const duration = finish - startGameTime;
+          dataGroup[dataIndex].duration = duration;
+          dataGroup.sort(alphabetically(true));
+          console.log(dataGroup);
+          nahtuhClient.broadcast({ type: "newRank", groups: dataGroup });
+        }
+      } else if (data.content.type === "newRank") {
+        setGroups(data.content.groups);
+      }
     }
   };
   if (isHost && !isGameStarted)
@@ -123,24 +176,33 @@ const Main = ({ isHost, nickName }) => {
           />
         </Box>
       </Flex>
-      {/* <Box flex={1} height={"100vh"} py="40px">
+      <Box flex={1} height={"100vh"} py="40px">
         <VStack p="16px" bg={"white"} height={"100%"} borderRadius={"16px"}>
           <Text textAlign={"center"} mb="16px">
             Leaderboard
           </Text>
-          {participant.map((item, i) => (
-            <Text
+          {groups.map((item, i) => (
+            <Flex
               p="12px"
               width={"100%"}
               bg={"linear-gradient(96.18deg, #479FF4 3.21%, #1F43C1 105.94%)"}
               textAlign={"left"}
               borderRadius={"16px"}
+              alignItems={"center"}
+              justifyContent={"space-between"}
             >
-              {i + 1} {item.participantName}
-            </Text>
+              <Text>
+                {i + 1} {item.name}
+              </Text>
+              {item.duration ? (
+                <Text>{item.duration / 1000}s</Text>
+              ) : (
+                <Text>0</Text>
+              )}
+            </Flex>
           ))}
         </VStack>
-      </Box> */}
+      </Box>
     </Flex>
   );
 };

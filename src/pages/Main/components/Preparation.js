@@ -16,7 +16,9 @@ import { BiTrash } from "react-icons/bi";
 import { nahtuhClient } from "nahtuh-client";
 import { readFile } from "../../../utils/file";
 const Preparation = ({ participants }) => {
-  const [groups, setGroups] = useState([{ name: "Group 1", members: [] }]);
+  const [groups, setGroups] = useState([
+    { name: "Group 1", members: [], duration: null },
+  ]);
   const [groupCount, setGroupCount] = useState(1);
   const [imageUrl, setImageUrlPreview] = useState();
   const [unAssignmentParticipants, setUnAssignmentParticipants] =
@@ -33,16 +35,6 @@ const Preparation = ({ participants }) => {
   }, [imageUrl]);
 
   const addGroup = () => {
-    if (!imageUrl) {
-      toast({
-        title: "",
-        description: "Image cannot be empty",
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
-      return;
-    }
     if (participants.length <= groups.length) {
       toast({
         title: "Create Group Failed",
@@ -58,6 +50,7 @@ const Preparation = ({ participants }) => {
       const newGroup = {
         name: `Group ${groupCount + 1}`,
         members: [],
+        duration: null,
       };
 
       return [...prevGroups, newGroup];
@@ -99,6 +92,16 @@ const Preparation = ({ participants }) => {
   };
 
   const onStart = () => {
+    if (!imageUrl) {
+      toast({
+        title: "",
+        description: "Image cannot be empty",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
     if (unAssignmentParticipants.length !== 0) {
       toast({
         title: "",
@@ -130,7 +133,7 @@ const Preparation = ({ participants }) => {
         });
       }
     }
-    nahtuhClient.broadcast({ type: "gameStart" });
+    nahtuhClient.broadcast({ type: "gameStart", groups: groups });
   };
 
   const onImageUpload = async (event) => {
