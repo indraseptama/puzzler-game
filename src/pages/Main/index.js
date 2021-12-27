@@ -6,8 +6,6 @@ import { shuffle } from "../../utils/shuffle";
 import Preparation from "./components/Preparation";
 
 const Main = ({ isHost, nickName }) => {
-  const level = 4;
-  const solution = [...Array(level * level).keys()];
   const [participants, setParticipants] = useState([]);
   const [positions, setPositions] = useState([]);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -16,6 +14,8 @@ const Main = ({ isHost, nickName }) => {
   const [imageUrl, setImageUrl] = useState();
   const [startGameTime, setStartGameTime] = useState();
   const [groups, setGroups] = useState([]);
+  const [level, setLevel] = useState(1);
+  const [solution, setSolution] = useState([]);
 
   useEffect(() => {
     getParticipant();
@@ -23,27 +23,28 @@ const Main = ({ isHost, nickName }) => {
 
   useEffect(() => {
     nahtuhClient.onIncomingMessage = onIncomingMessage;
-  }, [groups]);
+  }, [groups, startGameTime]);
 
   useEffect(() => {
-    if (isHost && isGameStarted) {
+    if (isHost && isGameStarted && solution !== undefined) {
       const newPositions = shuffle(solution);
       const start = Date.now();
       nahtuhClient.broadcast({ type: "positions", positions: newPositions });
       setPositions(newPositions);
       setStartGameTime(start);
     }
-  }, [isGameStarted]);
+  }, [isGameStarted, solution]);
 
   useEffect(() => {
-    const matched = equals(solution, positions);
-    if (matched)
-      nahtuhClient.broadcast({ type: "finish", groupName: groupName });
-    setIsCompleted(matched);
+    if (solution !== undefined) {
+      const matched = equals(solution, positions);
+      if (matched)
+        nahtuhClient.broadcast({ type: "finish", groupName: groupName });
+      setIsCompleted(matched);
+    }
   }, [positions]);
 
   const onEventVariableChanged = (message) => {
-    console.log(message);
     const { name, value } = message;
     if (name === "groups") setGroups(value);
   };
@@ -111,12 +112,16 @@ const Main = ({ isHost, nickName }) => {
   }
 
   const onIncomingMessage = (data) => {
+    console.log(data);
     if (data && data.content) {
       if (data.content.type === "positions")
         setPositions(data.content.positions);
       else if (data.content.type === "gameStart") {
-        setGameStarted(true);
+        const newLevel = data.content.level;
+        setLevel(newLevel);
         setGroups(data.content.groups);
+        setSolution([...Array(newLevel * newLevel).keys()]);
+        setGameStarted(true);
       } else if (data.content.type === "groupName")
         setNameGroup(data.content.groupName);
       else if (data.content.type === "imageUrl")
@@ -131,9 +136,11 @@ const Main = ({ isHost, nickName }) => {
         if (dataGroup[dataIndex].duration === null) {
           const finish = Date.now();
           const duration = finish - startGameTime;
+          console.log(finish);
+          console.log(startGameTime);
+          console.log(duration);
           dataGroup[dataIndex].duration = duration;
           dataGroup.sort(alphabetically(true));
-          console.log(dataGroup);
           nahtuhClient.broadcast({ type: "newRank", groups: dataGroup });
         }
       } else if (data.content.type === "newRank") {

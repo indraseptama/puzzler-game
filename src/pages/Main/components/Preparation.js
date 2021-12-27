@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Flex,
-  Icon,
   IconButton,
   Image,
   Input,
@@ -21,6 +20,7 @@ const Preparation = ({ participants }) => {
   ]);
   const [groupCount, setGroupCount] = useState(1);
   const [imageUrl, setImageUrlPreview] = useState();
+  const [totalRows, setTotalRows] = useState(4);
   const [unAssignmentParticipants, setUnAssignmentParticipants] =
     useState(participants);
   const toast = useToast();
@@ -35,6 +35,16 @@ const Preparation = ({ participants }) => {
   }, [imageUrl]);
 
   const addGroup = () => {
+    if (totalRows < 2 || totalRows > 20) {
+      toast({
+        title: "",
+        description: "Total rows minimum 2 and maksimum 20",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
     if (participants.length <= groups.length) {
       toast({
         title: "Create Group Failed",
@@ -133,7 +143,11 @@ const Preparation = ({ participants }) => {
         });
       }
     }
-    nahtuhClient.broadcast({ type: "gameStart", groups: groups });
+    nahtuhClient.broadcast({
+      type: "gameStart",
+      groups: groups,
+      level: totalRows,
+    });
   };
 
   const onImageUpload = async (event) => {
@@ -152,8 +166,28 @@ const Preparation = ({ participants }) => {
       alignItems={"flex-start"}
       background={"linear-gradient(180deg, #FFE4C6 2.16%, #EC9B3E 132.04%)"}
     >
-      <Box flex={2}>
-        <Box bg={"white"} borderRadius={"16px"} p="16px" mb="24px">
+      <Box flex={1}>
+        <Flex
+          direction={"column"}
+          bg={"white"}
+          borderRadius={"16px"}
+          p="16px"
+          mb="24px"
+        >
+          <Flex alignItems={"center"}>
+            <Text textAlign={"left"} flex={1}>
+              Total Rows:
+            </Text>
+            <Input
+              value={totalRows}
+              onChange={(e) => setTotalRows(e.target.value)}
+              flex={1}
+              type={"number"}
+              mb="8px"
+              fontSize={"16px"}
+            />
+          </Flex>
+
           <input
             type="file"
             id="file"
@@ -162,11 +196,15 @@ const Preparation = ({ participants }) => {
             label="Upload File"
             onChange={onImageUpload}
           />
-          {imageUrl && <Image mt="16px" src={imageUrl} boxSize={"50px"} />}
+          {imageUrl && (
+            <Flex justifyContent={"center"} width={"100%"}>
+              <Image mt="8px" src={imageUrl} boxSize={"75px"} />
+            </Flex>
+          )}
           <Button mt="16px" onClick={onStart}>
             Start
           </Button>
-        </Box>
+        </Flex>
         <Box bg={"white"} borderRadius={"16px"} p="16px">
           <Text fontWeight={"700"} fontSize={"24px"}>
             Participants
@@ -203,7 +241,7 @@ const Preparation = ({ participants }) => {
           </Button>
         </Flex>
 
-        <SimpleGrid gap={"40px"} columns={2}>
+        <SimpleGrid gap={"40px"} columns={3}>
           {groups.map((group, index) => (
             <Box bg={"white"} borderRadius={"16px"} p="16px">
               <Flex
