@@ -150,6 +150,29 @@ const Preparation = ({ participants }) => {
     });
   };
 
+  const randomAssignment = () => {
+    let players = [...unAssignmentParticipants];
+
+    const maxPlayer = Math.ceil(participants.length / groups.length);
+
+    const dataGroups = [...groups];
+    let index = 0;
+    let idx = Math.floor(Math.random() * players.length);
+
+    while (players.length > 0) {
+      const indexAfterMod = index % groups.length;
+
+      if (dataGroups[indexAfterMod].members.length < maxPlayer) {
+        dataGroups[indexAfterMod].members.push(players[idx]);
+        players.splice(idx, 1);
+        idx = Math.floor(Math.random() * players.length);
+      }
+      index++;
+    }
+    setUnAssignmentParticipants([]);
+    setGroups(dataGroups);
+  };
+
   const onImageUpload = async (event) => {
     if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
@@ -233,7 +256,7 @@ const Preparation = ({ participants }) => {
       <Box width={"40px"}></Box>
       <Box flex={3}>
         <Flex justifyContent={"right"}>
-          <Button mb="24px" mr="24px">
+          <Button onClick={randomAssignment} mb="24px" mr="24px">
             Random Group
           </Button>
           <Button mb="24px" onClick={addGroup}>
