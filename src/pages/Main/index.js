@@ -1,4 +1,4 @@
-import { Box, Flex, Spinner, Text, VStack } from "@chakra-ui/react";
+import { Box, Flex, Image, Spinner, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Puzzle from "./components/Puzzle";
 import { nahtuhClient } from "nahtuh-client";
@@ -112,7 +112,6 @@ const Main = ({ isHost, nickName }) => {
   }
 
   const onIncomingMessage = (data) => {
-    console.log(data);
     if (data && data.content) {
       if (data.content.type === "positions")
         setPositions(data.content.positions);
@@ -136,9 +135,7 @@ const Main = ({ isHost, nickName }) => {
         if (dataGroup[dataIndex].duration === null) {
           const finish = Date.now();
           const duration = finish - startGameTime;
-          console.log(finish);
-          console.log(startGameTime);
-          console.log(duration);
+
           dataGroup[dataIndex].duration = duration;
           dataGroup.sort(alphabetically(true));
           nahtuhClient.broadcast({ type: "newRank", groups: dataGroup });
@@ -152,17 +149,40 @@ const Main = ({ isHost, nickName }) => {
     return <Preparation participants={participants} />;
   else if (!isHost && !isGameStarted)
     return (
-      <Box>
+      <Flex
+        direction={"column"}
+        alignItems={"center"}
+        justifyContent={"center"}
+        minHeight={"100vh"}
+        background={"linear-gradient(180deg, #FFE4C6 2.16%, #EC9B3E 132.04%)"}
+      >
+        <Text>Waiting host prepare the game</Text>
+        <Box height={"32px"} />
         <Spinner />
-      </Box>
+      </Flex>
     );
   return (
     <Flex
+      direction={{ base: "column", md: "row" }}
       width={"100%"}
       px={"40px"}
       minHeight={"100vh"}
       background={"linear-gradient(180deg, #FFE4C6 2.16%, #EC9B3E 132.04%)"}
     >
+      <Flex py="40px" flex={1}>
+        <Flex
+          bg={"white"}
+          borderRadius={"16px"}
+          width={"100%"}
+          height={"max-content"}
+          p="16px"
+          direction={"column"}
+          alignItems={"center"}
+        >
+          <Text mb="16px">Solution</Text>
+          <Image src={imageUrl} boxSize={"200px"} />
+        </Flex>
+      </Flex>
       <Flex
         overflow={"hidden"}
         justifyContent={"center"}
@@ -183,8 +203,20 @@ const Main = ({ isHost, nickName }) => {
           />
         </Box>
       </Flex>
-      <Box flex={1} height={"100vh"} py="40px">
-        <VStack p="16px" bg={"white"} height={"100%"} borderRadius={"16px"}>
+
+      <Flex
+        direction={"column"}
+        flex={1}
+        py="40px"
+        maxHeight={"100vh"}
+        overflow={"hidden"}
+      >
+        <VStack
+          p="16px"
+          bg={"white"}
+          borderRadius={"16px"}
+          overflowY={"scroll"}
+        >
           <Text textAlign={"center"} mb="16px">
             Leaderboard
           </Text>
@@ -209,7 +241,7 @@ const Main = ({ isHost, nickName }) => {
             </Flex>
           ))}
         </VStack>
-      </Box>
+      </Flex>
     </Flex>
   );
 };
