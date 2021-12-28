@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { ReactSortable } from "react-sortablejs";
 import { BiTrash } from "react-icons/bi";
 import { nahtuhClient } from "nahtuh-client";
+import Compress from "react-image-file-resizer";
 import { readFile } from "../../../utils/file";
 const Preparation = ({ participants }) => {
   const [groups, setGroups] = useState([
@@ -176,8 +177,19 @@ const Preparation = ({ participants }) => {
   const onImageUpload = async (event) => {
     if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
-      let imageDataUrl = await readFile(file);
-      setImageUrlPreview(imageDataUrl);
+      const urlFileCompresed = await new Promise((resolve) =>
+        Compress.imageFileResizer(
+          file,
+          500,
+          500,
+          "PNG",
+          80,
+          0,
+          (uri) => resolve(uri),
+          "base64"
+        )
+      );
+      setImageUrlPreview(urlFileCompresed);
     }
   };
 
