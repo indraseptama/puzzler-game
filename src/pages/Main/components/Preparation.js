@@ -199,21 +199,22 @@ const Preparation = ({ participants }) => {
       p={"40px"}
       minHeight={"100vh"}
       alignItems={"flex-start"}
-      background={"linear-gradient(180deg, #FFE4C6 2.16%, #EC9B3E 132.04%)"}
+      background={"#262d53"}
     >
       <Box flex={1}>
         <Flex
           direction={"column"}
-          bg={"white"}
+          bg={"rgba(0, 0, 0, 0.5)"}
           borderRadius={"16px"}
           p="16px"
           mb="24px"
         >
           <Flex alignItems={"center"}>
-            <Text textAlign={"left"} flex={1}>
+            <Text textAlign={"left"} flex={1} color={"white"}>
               Total Rows:
             </Text>
             <Input
+              color={"white"}
               value={totalRows}
               onChange={(e) => setTotalRows(e.target.value)}
               flex={1}
@@ -222,25 +223,32 @@ const Preparation = ({ participants }) => {
               fontSize={"16px"}
             />
           </Flex>
+          <Box color={"white"}>
+            <input
+              type="file"
+              id="file"
+              multiple={false}
+              accept="image/*"
+              label="Upload File"
+              onChange={onImageUpload}
+            />
+          </Box>
 
-          <input
-            type="file"
-            id="file"
-            multiple={false}
-            accept="image/*"
-            label="Upload File"
-            onChange={onImageUpload}
-          />
           {imageUrl && (
             <Flex justifyContent={"center"} width={"100%"}>
               <Image mt="8px" src={imageUrl} boxSize={"75px"} />
             </Flex>
           )}
-          <Button mt="16px" onClick={onStart}>
+          <Button colorScheme={"red"} mt="16px" onClick={onStart}>
             Start
           </Button>
         </Flex>
-        <Box bg={"white"} borderRadius={"16px"} p="16px">
+        <Box
+          bg={"rgba(0, 0, 0, 0.5)"}
+          color={"white"}
+          borderRadius={"16px"}
+          p="16px"
+        >
           <Text fontWeight={"700"} fontSize={"24px"}>
             Participants
           </Text>
@@ -278,20 +286,28 @@ const Preparation = ({ participants }) => {
 
         <SimpleGrid gap={"40px"} columns={3}>
           {groups.map((group, index) => (
-            <Box bg={"white"} borderRadius={"16px"} p="16px">
+            <Box
+              bg={"rgba(0, 0, 0, 0.5)"}
+              color={"white"}
+              borderRadius={"16px"}
+              p="16px"
+            >
               <Flex
                 alignItems={"center"}
                 justifyContent={"space-between"}
                 w="100%"
+                mb="8px"
               >
                 <Input
                   value={group.name}
                   onChange={(e) => changeNameGroup(e.target.value, index)}
-                  mb="8px"
                   fontSize={"24px"}
                   fontWeight={"600"}
+                  mr="4px"
                 />
                 <IconButton
+                  p="8px"
+                  colorScheme={"red"}
                   cursor={"pointer"}
                   onClick={() => {
                     removeGroup(index);

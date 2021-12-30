@@ -13,13 +13,17 @@ import {
   Th,
   Td,
   TableCaption,
+  Icon,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import Puzzle from "./components/Puzzle";
 import { nahtuhClient } from "nahtuh-client";
 import { shuffle } from "../../utils/shuffle";
 import Preparation from "./components/Preparation";
+import { GoMute, GoUnmute } from "react-icons/go";
 
+const WinAudio = new Audio("winner-song.mp3");
+const PlayAudio = new Audio("powerup.mp3");
 const Main = ({ isHost, nickName }) => {
   const [participants, setParticipants] = useState([]);
   const [positions, setPositions] = useState([]);
@@ -32,10 +36,20 @@ const Main = ({ isHost, nickName }) => {
   const [level, setLevel] = useState(1);
   const [solution, setSolution] = useState([]);
   const [members, setMembers] = useState([]);
+  const [audio, setAudio] = useState(PlayAudio);
+  const [isPlayAudio, setIsPlayAudio] = useState(false);
 
   useEffect(() => {
     getParticipant();
   }, []);
+
+  useEffect(() => {
+    audio.loop = true;
+    audio.volume = 0.7;
+    audio.load();
+    if (isPlayAudio) audio.play();
+    else audio.pause();
+  }, [audio, isPlayAudio]);
 
   useEffect(() => {
     if (groups.length > 0 && groupName !== "") {
@@ -59,10 +73,16 @@ const Main = ({ isHost, nickName }) => {
   }, [isGameStarted, solution]);
 
   useEffect(() => {
-    if (solution !== undefined) {
+    if (solution.length > 0) {
       const matched = equals(solution, positions);
-      if (matched)
+
+      if (matched) {
+        console.log("hehe");
+        audio.pause();
+        setAudio(WinAudio);
         nahtuhClient.broadcast({ type: "finish", groupName: groupName });
+      }
+
       setIsCompleted(matched);
     }
   }, [positions]);
@@ -143,6 +163,7 @@ const Main = ({ isHost, nickName }) => {
         setLevel(newLevel);
         setGroups(data.content.groups);
         setSolution([...Array(newLevel * newLevel).keys()]);
+        setIsPlayAudio(true);
         setGameStarted(true);
       } else if (data.content.type === "groupName")
         setNameGroup(data.content.groupName);
@@ -177,7 +198,8 @@ const Main = ({ isHost, nickName }) => {
         alignItems={"center"}
         justifyContent={"center"}
         minHeight={"100vh"}
-        background={"linear-gradient(180deg, #FFE4C6 2.16%, #EC9B3E 132.04%)"}
+        background={"#262d53"}
+        color={"white"}
       >
         <Text>Waiting host prepare the game</Text>
         <Box height={"32px"} />
@@ -225,7 +247,18 @@ const Main = ({ isHost, nickName }) => {
           />
         </Box>
       </Flex>
-
+      <Box mt="40px" mr="20px">
+        <Icon
+          color={"white"}
+          height={"40px"}
+          width={"40px"}
+          cursor={"pointer"}
+          onClick={() => {
+            setIsPlayAudio((prevState) => !prevState);
+          }}
+          as={isPlayAudio ? GoUnmute : GoMute}
+        />
+      </Box>
       <Flex
         bg={"rgba(0, 0, 0, 0.5)"}
         direction={"column"}
