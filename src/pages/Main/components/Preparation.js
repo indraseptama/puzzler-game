@@ -36,16 +36,6 @@ const Preparation = ({ participants }) => {
   }, [imageUrl]);
 
   const addGroup = () => {
-    if (totalRows < 2 || totalRows > 20) {
-      toast({
-        title: "",
-        description: "Total rows minimum 2 and maksimum 20",
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
-      return;
-    }
     if (participants.length <= groups.length) {
       toast({
         title: "Create Group Failed",
@@ -103,6 +93,16 @@ const Preparation = ({ participants }) => {
   };
 
   const onStart = () => {
+    if (totalRows < 2 || totalRows > 8) {
+      toast({
+        title: "",
+        description: "Total rows minimum 2 and maksimum 8",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+      return;
+    }
     if (!imageUrl) {
       toast({
         title: "",

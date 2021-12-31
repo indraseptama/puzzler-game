@@ -77,8 +77,6 @@ const Main = ({ isHost, nickName }) => {
       const matched = equals(solution, positions);
 
       if (matched) {
-        console.log("hehe");
-        audio.pause();
         setAudio(WinAudio);
         nahtuhClient.broadcast({ type: "finish", groupName: groupName });
       }
